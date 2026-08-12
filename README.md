@@ -11,3 +11,5 @@
     - output file inherits name of sql file plus timestamp
     - the first query in the file is the one that will be run
         - the file's content is split at the first semicolon. nothing past that is used
+
+# moved to personal jdetok acct 8/12/2026
