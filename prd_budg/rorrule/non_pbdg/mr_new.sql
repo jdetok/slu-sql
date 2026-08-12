@@ -1,0 +1,112 @@
+-- see if we can use rank 
+-- MADRID PB RORRULE
+SELECT A.RORSTAT_PIDM
+FROM RORSTAT A
+INNER JOIN ROBINST R ON R.ROBINST_AIDY_CODE = A.RORSTAT_AIDY_CODE
+WHERE A.RORSTAT_AIDY_CODE = :AIDY   
+-- AND RORSTAT_PIDM = :PIDM   
+AND (
+    EXISTS (
+        SELECT 1
+        FROM SGBSTDN B
+        WHERE B.SGBSTDN_PIDM = A.RORSTAT_PIDM
+        AND B.SGBSTDN_CAMP_CODE = 'SP' 
+        AND B.SGBSTDN_STST_CODE IN ('AS', 'IL', 'P1')
+        AND B.SGBSTDN_TERM_CODE_EFF = (
+            SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+            FROM SGBSTDN
+            WHERE SGBSTDN_PIDM = B.SGBSTDN_PIDM
+            AND SGBSTDN_LEVL_CODE = B.SGBSTDN_LEVL_CODE
+            AND SGBSTDN_CAMP_CODE = B.SGBSTDN_CAMP_CODE
+            AND SGBSTDN_STST_CODE = B.SGBSTDN_STST_CODE
+        )
+    ) OR (
+        EXISTS ( -- DEPOSITED MADRID APP
+            SELECT 1
+            FROM SARADAP C
+            INNER JOIN SARAPPD D 
+                ON D.SARAPPD_PIDM = C.SARADAP_PIDM
+                AND D.SARAPPD_APPL_NO = C.SARADAP_APPL_NO
+                AND D.SARAPPD_TERM_CODE_ENTRY = C.SARADAP_TERM_CODE_ENTRY
+            INNER JOIN STVAPDC E
+                ON E.STVAPDC_CODE = D.SARAPPD_APDC_CODE
+                AND E.STVAPDC_INST_ACC_IND = 'Y'
+                AND E.STVAPDC_SIGNF_IND = 'Y'
+                AND E.STVAPDC_STDN_ACC_IND = 'Y'
+            WHERE C.SARADAP_PIDM = A.RORSTAT_PIDM
+            AND C.SARADAP_CAMP_CODE = 'SP'
+            AND C.SARADAP_TERM_CODE_ENTRY = (
+                SELECT MAX(SARADAP_TERM_CODE_ENTRY)
+                FROM SARADAP
+                WHERE SARADAP_PIDM = C.SARADAP_PIDM
+                AND SARADAP_TERM_CODE_ENTRY BETWEEN 
+                    (R.ROBINST_AIDY_END_YEAR || '00') AND :PERIOD   
+            )
+            AND D.SARAPPD_SEQ_NO = (
+                SELECT MAX(SARAPPD_SEQ_NO)
+                FROM SARAPPD
+                WHERE SARAPPD_PIDM = D.SARAPPD_PIDM
+                AND SARAPPD_SEQ_NO < 99
+                AND SARAPPD_TERM_CODE_ENTRY <= D.SARAPPD_TERM_CODE_ENTRY
+            ) 
+        )
+    ) OR (
+        EXISTS ( -- MADRID ADMITTED, NO STL ADMITTED
+            SELECT 1
+            FROM SARADAP F
+            INNER JOIN SARAPPD G
+                ON G.SARAPPD_PIDM = F.SARADAP_PIDM
+                AND G.SARAPPD_APPL_NO = F.SARADAP_APPL_NO
+                AND G.SARAPPD_TERM_CODE_ENTRY = F.SARADAP_TERM_CODE_ENTRY
+            INNER JOIN STVAPDC H
+                ON H.STVAPDC_CODE = G.SARAPPD_APDC_CODE
+                AND H.STVAPDC_INST_ACC_IND = 'Y'
+                AND H.STVAPDC_SIGNF_IND = 'Y'
+                AND H.STVAPDC_STDN_ACC_IND <> 'Y' -- NOT DEPOSITED
+            WHERE F.SARADAP_PIDM = A.RORSTAT_PIDM
+            AND F.SARADAP_CAMP_CODE = 'SP'
+            AND F.SARADAP_TERM_CODE_ENTRY = (
+                SELECT MAX(SARADAP_TERM_CODE_ENTRY)
+                FROM SARADAP
+                WHERE SARADAP_PIDM = F.SARADAP_PIDM
+                AND SARADAP_TERM_CODE_ENTRY BETWEEN 
+                    (R.ROBINST_AIDY_END_YEAR || '00') AND :PERIOD   
+            )
+            AND G.SARAPPD_SEQ_NO = (
+                SELECT MAX(SARAPPD_SEQ_NO)
+                FROM SARAPPD
+                WHERE SARAPPD_PIDM = G.SARAPPD_PIDM
+                AND SARAPPD_SEQ_NO < 99
+                AND SARAPPD_TERM_CODE_ENTRY <= G.SARAPPD_TERM_CODE_ENTRY
+            ) 
+        ) AND NOT EXISTS ( -- NO STL ADMITTED
+            SELECT 1
+            FROM SARADAP I
+            INNER JOIN SARAPPD J
+                ON J.SARAPPD_PIDM = I.SARADAP_PIDM
+                AND J.SARAPPD_APPL_NO = I.SARADAP_APPL_NO
+                AND J.SARAPPD_TERM_CODE_ENTRY = I.SARADAP_TERM_CODE_ENTRY
+            INNER JOIN STVAPDC K
+                ON K.STVAPDC_CODE = J.SARAPPD_APDC_CODE
+                AND K.STVAPDC_INST_ACC_IND = 'Y'
+                AND K.STVAPDC_SIGNF_IND = 'Y'
+                AND K.STVAPDC_STDN_ACC_IND <> 'Y' -- NOT DEPOSITED
+            WHERE I.SARADAP_PIDM = A.RORSTAT_PIDM
+            AND I.SARADAP_CAMP_CODE = 'FR'
+            AND I.SARADAP_TERM_CODE_ENTRY = (
+                SELECT MAX(SARADAP_TERM_CODE_ENTRY)
+                FROM SARADAP
+                WHERE SARADAP_PIDM = I.SARADAP_PIDM
+                AND SARADAP_TERM_CODE_ENTRY BETWEEN 
+                    (R.ROBINST_AIDY_END_YEAR || '00') AND :PERIOD   
+            )
+            AND J.SARAPPD_SEQ_NO = (
+                SELECT MAX(SARAPPD_SEQ_NO)
+                FROM SARAPPD
+                WHERE SARAPPD_PIDM = J.SARAPPD_PIDM
+                AND SARAPPD_SEQ_NO < 99
+                AND SARAPPD_TERM_CODE_ENTRY = J.SARAPPD_TERM_CODE_ENTRY
+            ) 
+        )
+    )
+)

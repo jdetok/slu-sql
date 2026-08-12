@@ -1,0 +1,242 @@
+-- sequence 220 - UG NOT PS FT
+SELECT RORALGS_AMT, a.SGBSTDN_PIDM, s.spriden_id
+FROM SGBSTDN a
+cross join roralgs
+inner join spriden s on s.spriden_pidm = a.SGBSTDN_PIDM and spriden_change_ind is null
+WHERE RORALGS_KEY_1 = 'PBDG'
+AND RORALGS_KEY_4 = '2FEE'
+AND CASE
+    WHEN a.SGBSTDN_LEVL_CODE = 'UG' THEN 'UG'
+END = RORALGS_KEY_5
+AND RORALGS_KEY_12 = 'FT'
+-- sgbstdn term
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND RORALGS_AIDY_CODE = :AIDY
+--AND a.SGBSTDN_PIDM = :PIDM
+ 
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > a.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 2, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 <> a.SGBSTDN_PROGRAM_1
+);
+-- ;
+-- 8534
+
+-- sequence 220 - UG NOT PS FT
+
+
+select a.* from (
+SELECT RORALGS_AMT, a.SGBSTDN_PIDM, s.spriden_id
+FROM SGBSTDN a
+cross join roralgs
+inner join spriden s on s.spriden_pidm = a.SGBSTDN_PIDM and spriden_change_ind is null
+WHERE RORALGS_KEY_1 = 'PBDG'
+AND RORALGS_KEY_4 = '2FEE'
+AND CASE
+    WHEN a.SGBSTDN_LEVL_CODE = 'UG' THEN 'UG'
+END = RORALGS_KEY_5
+AND RORALGS_KEY_12 = 'FT'
+-- sgbstdn term
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND RORALGS_AIDY_CODE = :AIDY
+) a
+left join (
+SELECT RORALGS_AMT, a.SGBSTDN_PIDM, s.spriden_id
+FROM SGBSTDN a
+cross join roralgs
+inner join spriden s on s.spriden_pidm = a.SGBSTDN_PIDM and spriden_change_ind is null
+WHERE RORALGS_KEY_1 = 'PBDG'
+AND RORALGS_KEY_4 = '2FEE'
+AND CASE
+    WHEN a.SGBSTDN_LEVL_CODE = 'UG' THEN 'UG'
+END = RORALGS_KEY_5
+AND RORALGS_KEY_12 = 'FT'
+-- sgbstdn term
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND RORALGS_AIDY_CODE = :AIDY
+--AND a.SGBSTDN_PIDM = :PIDM
+ 
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY >= a.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 2, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 <> a.SGBSTDN_PROGRAM_1
+)
+) b on b.spriden_id = a.spriden_id
+where b.spriden_id is null;
+
+SELECT RORALGS_AMT, a.SGBSTDN_PIDM, s.spriden_id
+FROM SGBSTDN a
+cross join roralgs
+inner join spriden s on s.spriden_pidm = a.SGBSTDN_PIDM and spriden_change_ind is null
+WHERE RORALGS_KEY_1 = 'PBDG'
+AND RORALGS_KEY_4 = '2FEE'
+AND CASE
+    WHEN a.SGBSTDN_LEVL_CODE = 'UG' THEN 'UG'
+END = RORALGS_KEY_5
+AND RORALGS_KEY_12 = 'FT'
+-- sgbstdn term
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND RORALGS_AIDY_CODE = :AIDY
+--AND a.SGBSTDN_PIDM = :PIDM
+ 
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > a.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 2, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 <> a.SGBSTDN_PROGRAM_1
+)
+
+SELECT RORALGS_AMT
+FROM SGBSTDN a, RORALGS
+WHERE RORALGS_KEY_1 = 'PBDG'
+AND RORALGS_KEY_4 = '2FEE'
+AND CASE
+    WHEN a.SGBSTDN_LEVL_CODE = 'UG' THEN 'UG'
+END = RORALGS_KEY_5
+AND RORALGS_KEY_12 = 'FT'
+-- sgbstdn term
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND RORALGS_AIDY_CODE = :AIDY
+AND a.SGBSTDN_PIDM = :PIDM 
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > a.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 2, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 <> a.SGBSTDN_PROGRAM_1
+)
+;
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = X.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > X.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 2, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 <> X.SGBSTDN_PROGRAM_1
+)
+;
+select rbrabrc_abrc_code, rbrabrc_seq_no, rbrabrc_validated_ind, rbrabrc_sql_statement
+from rbrabrc
+where rbrabrc_aidy_code = '2627'
+and ((regexp_like(rbrabrc_sql_statement, 'SELECT RORALGS_AMT\s+FROM SGB') and not regexp_like(rbrabrc_sql_statement, 'AND NOT EXISTS')) or rbrabrc_validated_ind = 'N')
+--and ((regexp_like(rbrabrc_sql_statement, 'NOT ENROLLED WITH SG') and not regexp_like(rbrabrc_sql_statement, 'AND NOT EXISTS')) or rbrabrc_validated_ind = 'N')
+;
+select rbrabrc_abrc_code, rbrabrc_seq_no, rbrabrc_validated_ind, rbrabrc_sql_statement
+from rbrabrc
+where rbrabrc_aidy_code = '2627'
+AND rbrabrc_validated_ind = 'N';
+
+select rbrabrc_abrc_code, rbrabrc_seq_no, rbrabrc_validated_ind, rbrabrc_sql_statement
+from rbrabrc
+where rbrabrc_aidy_code = '2627'
+and (regexp_like(rbrabrc_sql_statement, 'AND NOT EXISTS') or rbrabrc_validated_ind = 'N');
+
+
+select * from rorprst where rorprst_xhs is null and rorprst_period = '202710';
+
+Select RORSTAT_PIDM
+from RORSTAT,  RORPRST -- ROVST27, ROVAD27,
+where 
+	RORSTAT_AIDY_CODE	=	'2627'	 	
+--    AND(
+--            (	
+--        ROVAD27_STYP_CODE	IN	('F','1')	 	AND
+--        ROVAD27_CAMP_CODE	=	'FR'	
+--        )
+--        OR
+--        (	
+--        ROVST27_STYP_CODE	IN	('F','1')	 	
+--        AND    ROVST27_CAMP_CODE	=	'FR'	
+--        )
+--    )	
+AND
+	RORPRST_XHS	IS NULL	 	 	AND
+	RORPRST_PERIOD	=	'202710'	 	AND
+	RORSTAT_PIDM	=	RORPRST_PIDM	 
+--	ROVAD27_PIDM	=	RORSTAT_PIDM	 	AND
+--	ROVST27_PIDM	=	RORSTAT_PIDM	 	AND
+--	ROVAD27_AIDY_CODE	=	RORSTAT_AIDY_CODE	; 	
+;
+SELECT COUNT(DISTINCT ROVST27_PIDM) FROM ROVST27
+JOIN RORSTAT ON RORSTAT_PIDM = ROVST27_PIDM AND RORSTAT_AIDY_CODE = ROVST27_AIDY_CODE
+JOIN ROVAD27 ON ROVAD27_PIDM = ROVST27_PIDM AND ROVAD27_AIDY_CODE = ROVST27_AIDY_CODE;
+SELECT COUNT(DISTINCT RORSTAT_PIDM) FROM RORSTAT;

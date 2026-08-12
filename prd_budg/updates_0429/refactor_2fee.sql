@@ -1,0 +1,85 @@
+-- refactor 2FEE cutoff dates
+
+-- UNDERGRAD NOT PS SEQUENCES ==================================================
+-- sequence 200 - UG NOT PS FT
+SELECT 
+    CASE WHEN 
+    NVL(ROKMISC.F_CALC_STUD_BILL_HRS(:PERIOD, a.SGBSTDN_PIDM, 'N'), 0) >= 12
+    THEN RORALGS_AMT
+END
+FROM SGBSTDN a, RORALGS
+WHERE RORALGS_KEY_1 = 'PBDG'
+AND RORALGS_KEY_4 = '2FEE'
+AND CASE
+    WHEN a.SGBSTDN_LEVL_CODE = 'UG' THEN 'UG'
+END = RORALGS_KEY_5
+AND RORALGS_KEY_12 = 'FT'
+-- sgbstdn term
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)	
+AND a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND RORALGS_AIDY_CODE = :AIDY
+AND a.SGBSTDN_PIDM = :PIDM
+-- ;
+
+;
+
+
+-- sequence 210 - UG NOT PS PT (1-11 hours)
+with stu as (
+    select roralgs_amt
+    from (
+        select a.SGBSTDN_PIDM, a.SGBSTDN_LEVL_CODE, NVL(ROKMISC.F_CALC_STUD_BILL_HRS(:PERIOD, a.SGBSTDN_PIDM, 'N'), 0) as hrs
+        from sgbstdn a
+        WHERE a.SGBSTDN_STST_CODE IN  ('AS','IL')
+        AND a.SGBSTDN_LEVL_CODE = 'UG'
+        -- sgbstdn term
+        AND a.SGBSTDN_TERM_CODE_EFF = (
+            SELECT MAX(z.SGBSTDN_TERM_CODE_EFF)
+            FROM SGBSTDN z
+            WHERE a.SGBSTDN_STST_CODE IN  ('AS','IL')
+            AND z.SGBSTDN_PIDM = a.SGBSTDN_PIDM
+            AND z.SGBSTDN_TERM_CODE_EFF <= :PERIOD
+        )
+    ) a
+    INNER JOIN RORALGS on RORALGS_AIDY_CODE = :AIDY
+        AND RORALGS_KEY_1 = 'PBDG' 
+        AND RORALGS_KEY_4 = '2FEE'
+        AND RORALGS_KEY_5 = a.SGBSTDN_LEVL_CODE
+        AND RORALGS_KEY_12 = case 
+            when a.hrs >= 11 then 'FT'
+            when a.hrs >= 1 then 'PT'
+        end
+)
+SELECT RORALGS_AMT
+FROM stu a
+
+
+-- AND a.SGBSTDN_PIDM = :PIDM
+-- ;
+
+-- sequence 210 - UG NOT PS PT (1-11 hours)
+;
+SELECT CASE WHEN NVL(ROKMISC.F_CALC_STUD_BILL_HRS(:PERIOD, a.SGBSTDN_PIDM, 'N'), 0) >= 1 THEN RORALGS_AMT END
+FROM SGBSTDN a
+INNER JOIN RORALGS on RORALGS_AIDY_CODE = :AIDY
+    AND RORALGS_KEY_1 = 'PBDG' 
+    AND RORALGS_KEY_4 = '2FEE'
+    AND RORALGS_KEY_5 = a.SGBSTDN_LEVL_CODE
+    AND RORALGS_KEY_12 = 'PT'
+inner join sfs_utility.pbdg_cutoff_dates on period = :PERIOD and sysdate >= cutoff
+WHERE a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND a.SGBSTDN_LEVL_CODE = 'UG'
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)	
+
+-- AND a.SGBSTDN_PIDM = :PIDM
+-- ;

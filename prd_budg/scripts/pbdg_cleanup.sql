@@ -1,0 +1,9 @@
+delete from rbrpgpt;
+delete from rbrpell;
+delete from rbrpbdr;
+delete from rbrpbgp;
+delete from rbrpbcp;
+delete from rbrabrc;
+delete from rtvabrc;
+delete from rtvpbgp;
+delete from rtvpbcp;

@@ -1,0 +1,76 @@
+-- SLUAAH update, original sent by Janice 07132026
+-- need to switch to period budget logic, exclude stus with 4 semesters already awarded
+
+-- new version entered into banner 7/13/2026
+SELECT A.RORSTAT_PIDM
+FROM RORSTAT A
+WHERE A.RORSTAT_AIDY_CODE = :AIDY
+AND A.RORSTAT_PIDM = :PIDM
+AND (
+    EXISTS (
+        SELECT 1 FROM ROBNYUD
+        WHERE ROBNYUD_PIDM = A.RORSTAT_PIDM
+        AND (
+            (A.RORSTAT_PGRP_CODE LIKE 'UF%' OR A.RORSTAT_PGRP_CODE LIKE 'UT%')
+            AND SUBSTR(ROBNYUD_VALUE_27,0,4)  = '20' || SUBSTR(:AIDY ,3,2)
+        )
+    ) OR EXISTS (
+        SELECT 1 FROM RORSTAT B
+	    WHERE B.RORSTAT_PGRP_CODE  IN ('UG-CO','UG-CON')
+        AND B.RORSTAT_PIDM = A.RORSTAT_PIDM
+        AND B.RORSTAT_AIDY_CODE = A.RORSTAT_AIDY_CODE
+        AND EXISTS (
+            SELECT 1
+            FROM RPRAWRD
+            WHERE RPRAWRD_FUND_CODE = 'SLUAAH'
+            AND RPRAWRD_PAID_AMT > 0
+            AND RPRAWRD_AIDY_CODE = to_number(:AIDY) - 101
+            AND RPRAWRD_PIDM = A.RORSTAT_PIDM
+        )
+    )
+)
+AND EXISTS (
+    SELECT 1 FROM RBRAPBG
+    WHERE RBRAPBG_PIDM = A.RORSTAT_PIDM
+    AND RBRAPBG_AIDY_CODE = A.RORSTAT_AIDY_CODE
+    AND RBRAPBG_PBGP_CODE = 'UG'
+    AND RBRAPBG_RUN_NAME = 'ACTUAL'
+)
+AND NOT EXISTS (
+    SELECT 1 FROM (
+        SELECT RPRATRM_PIDM, COUNT(*) AS TERMS
+        FROM RPRATRM
+        WHERE RPRATRM_PIDM = RORSTAT_PIDM
+        AND RPRATRM_FUND_CODE = 'SLUAAH'
+        AND RPRATRM_PAID_AMT > 0
+        GROUP BY RPRATRM_PIDM
+    ) WHERE TERMS >= 4
+)
+;
+
+-- OG SNIPPET
+SELECT A.RORSTAT_PIDM
+FROM RORSTAT A
+WHERE  (EXISTS
+   (SELECT 'X'
+    FROM ROBNYUD
+       WHERE ROBNYUD_PIDM = A.RORSTAT_PIDM
+       AND A.RORSTAT_PIDM = ROBNYUD_PIDM
+         AND ((A.RORSTAT_PGRP_CODE LIKE 'UF%' OR A.RORSTAT_PGRP_CODE LIKE 'UT%')
+         AND SUBSTR(ROBNYUD_VALUE_27,0,4)  = '20' || SUBSTR( :AIDY                      ,3,2))) 
+      OR EXISTS
+(SELECT 'X'
+    FROM RORSTAT B
+	 WHERE B.RORSTAT_PGRP_CODE  IN ('UG-CO','UG-CON')
+        AND   B.RORSTAT_PIDM= A.RORSTAT_PIDM
+        AND   B.RORSTAT_AIDY_CODE = A.RORSTAT_AIDY_CODE)
+        AND EXISTS (SELECT 'X'
+                   FROM RPRAWRD
+                 WHERE RPRAWRD_FUND_CODE = 'SLUAAH'
+                     AND RPRAWRD_PAID_AMT > 0
+                     AND RPRAWRD_AIDY_CODE = '2526'
+                     AND RPRAWRD_PIDM = A.RORSTAT_PIDM))
+  AND A.RORSTAT_AIDY_CODE            = :AIDY                                 
+  AND A.RORSTAT_PIDM                 = :PIDM
+
+;

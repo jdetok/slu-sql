@@ -1,0 +1,4 @@
+# rbrabrc_export
+- Python script to retrieve all algorithmic budgeting rules from FAISMGR.RBRABRC in banprd and writes each sequence (RBRABRC_SQL_STATEMENT) to its own file in the /out directory. Each rule gets its own subdirectory, with each sequence writing to a file within that subdirectory. The sequence number (RBRABRC_SEQ_NO) is included in the file name. By default, the script also comments any line containing a PIDM bind variable (uses REGEX to find a string matching: ':PIDM'. This export process is generally to troubleshoot rules by running them directly against the DB - this requires commenting out the bind to PIDM. 
+
+- Note that oracle instantclient drivers are required to utilize the oracledb python package with banprd. As of 7/14/2026 the instantclient directory on my MBP is located at ~/oracle/instantclient_23_26. 
