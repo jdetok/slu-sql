@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+OUT_DIR="/Users/dekockjt/sql/z_out"
+ARCHIVE_DIR="$OUT_DIR/archive_$(date +'%m%d%Y_%H%M%S')"
+
+mkdir -p "$ARCHIVE_DIR"
+
+for f in "$OUT_DIR"/*.csv; do
+    mv "$f" "$ARCHIVE_DIR/$(basename $f)"
+done
