@@ -1,0 +1,327 @@
+-- sequence 510 - MED M2-4
+WITH med_cohort AS (
+    SELECT 
+        ROBINST_AIDY_END_YEAR || 'MD' as "M4",
+        ROBINST_AIDY_END_YEAR + 1 || 'MD' as "M3",
+        ROBINST_AIDY_END_YEAR + 2 || 'MD' as "M2"
+    FROM ROBINST
+    WHERE ROBINST_AIDY_CODE = :AIDY
+)
+SELECT RORALGS_AMT
+FROM SGBSTDN a
+CROSS JOIN RORALGS
+JOIN SGRCHRT b ON b.SGRCHRT_PIDM = a.SGBSTDN_PIDM
+    AND b.SGRCHRT_TERM_CODE_EFF = (
+        SELECT MAX(z.SGRCHRT_TERM_CODE_EFF)
+        FROM SGRCHRT z
+        WHERE z.SGRCHRT_CHRT_CODE in (
+            SELECT M4 FROM med_cohort UNION 
+            SELECT M3 FROM med_cohort UNION 
+            SELECT M2 FROM med_cohort
+        )
+        AND z.SGRCHRT_PIDM = b.SGRCHRT_PIDM
+    )
+INNER JOIN RORSTAT on RORSTAT_PIDM = a.SGBSTDN_PIDM and RORSTAT_AIDY_CODE = :AIDY
+WHERE a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND RORALGS_KEY_1 = 'PBDG' 
+AND RORALGS_KEY_4 = '2FEE'
+AND CASE
+    WHEN a.SGBSTDN_LEVL_CODE = 'PM' THEN 'PM'
+END = RORALGS_KEY_5
+AND CASE
+    WHEN b.SGRCHRT_CHRT_CODE = (SELECT M4 FROM med_cohort) THEN 'M4'
+    WHEN b.SGRCHRT_CHRT_CODE = (SELECT M3 FROM med_cohort) THEN 'M3'
+    WHEN b.SGRCHRT_CHRT_CODE = (SELECT M2 FROM med_cohort) THEN 'M2'
+    ELSE null
+END = RORALGS_KEY_10
+AND a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > a.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 3, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 <> a.SGBSTDN_PROGRAM_1
+)
+-- AND a.SGBSTDN_PIDM = :PIDM
+AND RORALGS_AIDY_CODE = :AIDY
+
+;
+select * from roralgs where roralgs_amt = 2835;
+
+-- sequence 100 - UG/GR/PL WITH SGBSTDN
+SELECT RORALGS_AMT
+FROM SGBSTDN a
+JOIN RORALGS on RORALGS_AIDY_CODE = :AIDY
+    and RORALGS_KEY_1 = 'PBDG'
+    and RORALGS_KEY_4 = '9MIS'
+    and RORALGS_KEY_5 = a.SGBSTDN_LEVL_CODE
+    and RORALGS_KEY_9 is null
+WHERE a.SGBSTDN_LEVL_CODE in ('UG', 'GR', 'PL')
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(z.SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN z
+    WHERE z.SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND z.SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)	
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > a.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 3, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 =  a.SGBSTDN_PROGRAM_1
+)
+AND a.SGBSTDN_STST_CODE IN  ('AS','IL')
+AND a.SGBSTDN_PIDM = :PIDM
+-- and a.sgbstdn_pidm = (select spriden_pidm from spriden where spriden_change_ind is null and spriden_id = '001498981')
+-- ;
+;
+
+select * from roralgs where roralgs_key_5 = 'GR' and roralgs_key_4 = '9MIS';
+
+-- SGBSTDN sequence: assumes FT  GR  PA until cutoff date
+SELECT case when (
+            (a.SGBSTDN_LEVL_CODE = 'PL' and a.SGBSTDN_FULL_PART_IND = 'P')
+            or (
+                sysdate >= (select cutoff from sfs_utility.pbdg_cutoff_dates where period = :PERIOD) and (
+                    (
+                        a.SGBSTDN_LEVL_CODE = 'UG' 
+                        and rokmisc.F_CALC_STUD_BILL_HRS(:PERIOD, a.SGBSTDN_PIDM, 'N') < 12
+                    ) or (
+                        a.SGBSTDN_LEVL_CODE = 'GR' 
+                        and rokmisc.F_CALC_STUD_BILL_HRS(:PERIOD, a.SGBSTDN_PIDM, 'N') < 6
+                    )
+                )
+            ) 
+        ) then (RORALGS_AMT / 2) 
+else RORALGS_AMT
+end as amt
+FROM SGBSTDN a, RORALGS, SGRCHRT b, ROBINST
+WHERE RORALGS_AIDY_CODE = :AIDY
+AND RORALGS_KEY_1 = 'PBDG'
+AND RORALGS_KEY_4 = '7BS'
+AND RORALGS_KEY_5 = a.SGBSTDN_LEVL_CODE
+AND a.SGBSTDN_LEVL_CODE in ('UG', 'GR', 'PL', 'PM')
+
+AND CASE -- major code
+    WHEN a.SGBSTDN_MAJR_CODE_1 = 'PA' THEN 'PA'
+END = RORALGS_KEY_9
+
+--A ROW FOR EACH COHORT CODE PA2026, PA2027
+AND CASE -- cohort code
+WHEN b.SGRCHRT_CHRT_CODE = ('PA' || ROBINST_AIDY_START_YEAR) THEN ('PA' || ROBINST_AIDY_START_YEAR)
+    WHEN b.SGRCHRT_CHRT_CODE = ('PA' || ROBINST_AIDY_END_YEAR) THEN ('PA' || ROBINST_AIDY_END_YEAR)
+END = RORALGS_KEY_11
+
+and a.SGBSTDN_STST_CODE in ('AS', 'IL')
+-- AND a.SGBSTDN_PIDM = :PIDM
+and a.sgbstdn_pidm = (select spriden_pidm from spriden where spriden_change_ind is null and spriden_id = '001498981')
+AND a.SGBSTDN_PIDM = b.SGRCHRT_PIDM
+AND RORALGS_AIDY_CODE = ROBINST_AIDY_CODE
+
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+
+-- max cohort term <= passed period
+AND b.SGRCHRT_TERM_CODE_EFF = (
+    SELECT MAX(Y.SGRCHRT_TERM_CODE_EFF)
+    FROM SGRCHRT Y
+    WHERE Y.SGRCHRT_PIDM = b.SGRCHRT_PIDM
+    AND Y.SGRCHRT_TERM_CODE_EFF <= :PERIOD
+)
+
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > a.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 3, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 = a.SGBSTDN_PROGRAM_1
+)
+;
+
+-- SGBSTDN sequence: assumes FT for UG and GR until cutoff date
+SELECT case
+	when (
+            (a.SGBSTDN_LEVL_CODE = 'PL' and a.SGBSTDN_FULL_PART_IND = 'P')
+            or (
+                sysdate >= (select cutoff from sfs_utility.pbdg_cutoff_dates where period = :PERIOD) and (
+                    (
+                        a.SGBSTDN_LEVL_CODE = 'UG' 
+                        and rokmisc.F_CALC_STUD_BILL_HRS(:PERIOD, a.SGBSTDN_PIDM, 'N') < 12
+                    ) or (
+                        a.SGBSTDN_LEVL_CODE = 'GR' 
+                        and rokmisc.F_CALC_STUD_BILL_HRS(:PERIOD, a.SGBSTDN_PIDM, 'N') < 6
+                    )
+                )
+            ) 
+        ) then (RORALGS_AMT / 2)
+
+	else RORALGS_AMT
+end as amt
+FROM SGBSTDN a
+INNER JOIN RORALGS on RORALGS_AIDY_CODE = :AIDY
+    AND RORALGS_KEY_1 = 'PBDG'
+    AND RORALGS_KEY_4 = '7BS'
+    AND RORALGS_KEY_5 = a.SGBSTDN_LEVL_CODE
+    AND RORALGS_KEY_9 IS NULL
+    AND RORALGS_KEY_11 IS NULL
+WHERE a.SGBSTDN_LEVL_CODE in ('UG', 'GR', 'PL', 'PM')
+and a.SGBSTDN_STST_CODE in ('AS', 'IL')
+-- AND a.SGBSTDN_PIDM = :PIDM
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > a.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 3, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 = a.SGBSTDN_PROGRAM_1
+)
+and a.sgbstdn_pidm = (select spriden_pidm from spriden where spriden_change_ind is null and spriden_id = '001498981')
+
+;
+
+-- sequence 1: MED, LOOK FOR ENROLLMENT
+SELECT CASE 
+    when sysdate >= (select cutoff from sfs_utility.pbdg_cutoff_dates where period = :PERIOD) 
+    then case
+        WHEN nvl(rokmisc.f_calc_stud_bill_hrs(:PERIOD, a.SGBSTDN_PIDM,'N'),0) >= b.RORCRHR_FULL_TIME_CR_HRS 
+            THEN RORALGS_AMT
+        WHEN nvl(rokmisc.f_calc_stud_bill_hrs(:PERIOD, a.SGBSTDN_PIDM,'N'),0) >= b.RORCRHR_HALF_TIME_CR_HRS 
+            THEN ROUND(RORALGS_AMT / 2)
+        WHEN nvl(rokmisc.f_calc_stud_bill_hrs(:PERIOD, a.SGBSTDN_PIDM,'N'),0) < b.RORCRHR_HALF_TIME_CR_HRS 
+        and nvl(rokmisc.f_calc_stud_bill_hrs(:PERIOD, a.SGBSTDN_PIDM,'N'),0) > 0
+            THEN ROUND(RORALGS_AMT / 4)
+    END 
+end
+FROM SGBSTDN a
+JOIN RORALGS ON RORALGS_AIDY_CODE = :AIDY
+    AND RORALGS_KEY_1 = 'PBDG'
+    AND RORALGS_KEY_4 = '7BS'
+    AND RORALGS_KEY_5 = a.SGBSTDN_LEVL_CODE
+    AND RORALGS_KEY_9 IS NULL
+    AND RORALGS_KEY_11 IS NULL
+JOIN RORCRHR b 
+    ON b.RORCRHR_LEVL_CODE = a.SGBSTDN_LEVL_CODE
+    AND b.RORCRHR_AIDY_CODE = :AIDY
+    AND b.RORCRHR_PERIOD = :PERIOD  
+WHERE a.SGBSTDN_PIDM = :PIDM
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+
+-- and a.sgbstdn_pidm = (select spriden_pidm from spriden where spriden_change_ind is null and spriden_id = '001498981')
+
+;
+
+-- Commuter meal plan, component only included in UG COA group
+-- UNDERGRAD WITH SGASTDN
+SELECT RORALGS_AMT
+FROM SGBSTDN X, RORALGS, RORPRST, ROBNYUD
+WHERE RORALGS_KEY_1 = 'PBDG'
+
+AND CASE
+    WHEN X.SGBSTDN_STYP_CODE not in ('F', '1', 'T') THEN 'C'
+END = RORALGS_KEY_2
+
+AND CASE -- OFF CAMPUS HOUSING FLAG IN RORPRST
+  WHEN (RORPRST_XHS IN ('1','3','4')) THEN '1'     --off campus or with family/relative
+END = RORALGS_KEY_3
+
+AND RORALGS_KEY_4 = '4COM' -- budget component                        
+
+AND CASE -- level code
+    WHEN X.SGBSTDN_LEVL_CODE = 'UG' THEN 'UG'
+END = RORALGS_KEY_5
+
+AND CASE -- campus code
+    WHEN X.SGBSTDN_CAMP_CODE = 'FR' THEN 'FR'
+END = RORALGS_KEY_6
+
+-- max sgbstdn term <= passed period
+AND X.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(Y.SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN Y
+    WHERE Y.SGBSTDN_PIDM = X.SGBSTDN_PIDM
+    AND Y.SGBSTDN_TERM_CODE_EFF <= :PERIOD)
+
+AND X.SGBSTDN_COLL_CODE_1 NOT IN ('PS','PL')
+AND X.SGBSTDN_PROGRAM_1 NOT IN ('NR041','NR02','TEAC03','NR06')            -- from JKB 11/17 added accel nursing, rising teacher
+
+AND X.SGBSTDN_PIDM = RORPRST_PIDM
+AND X.SGBSTDN_PIDM = ROBNYUD_PIDM
+AND RORPRST_PERIOD = :PERIOD	
+AND X.SGBSTDN_STST_CODE IN  ('AS','IL','P1')
+-- AND X.SGBSTDN_PIDM = :PIDM
+AND RORALGS_AIDY_CODE = :AIDY
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = X.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > X.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 3, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 <> X.SGBSTDN_PROGRAM_1
+)
+-- END
+
+;

@@ -1,0 +1,58 @@
+-- Commuter meal plan, component only included in UG COA group
+-- UNDERGRAD FRESHMAN WITH SGASTDN
+SELECT RORALGS_AMT
+FROM SGBSTDN X
+JOIN RORPRST on RORPRST_PIDM = X.SGBSTDN_PIDM
+    AND RORPRST_PERIOD = :PERIOD
+JOIN RORALGS on RORALGS_AIDY_CODE = :AIDY
+    and RORALGS_KEY_1 = 'PBDG'
+    and RORALGS_KEY_4 = '4COM'
+    and RORALGS_KEY_2 = CASE WHEN X.SGBSTDN_STYP_CODE in ('F', '1') AND RORPRST_XHS_LOCK_IND = 'Y' THEN 'F' END
+    and RORALGS_KEY_3 = CASE WHEN (RORPRST_XHS IN ('1','3','4')) THEN '1' END
+    and RORALGS_KEY_5 = X.SGBSTDN_LEVL_CODE
+    and RORALGS_KEY_6 = X.SGBSTDN_CAMP_CODE
+WHERE X.SGBSTDN_STST_CODE IN  ('AS','IL','P1') 
+AND X.SGBSTDN_LEVL_CODE = 'UG'
+and X.SGBSTDN_CAMP_CODE = 'FR'
+AND X.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(Y.SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN Y
+    WHERE Y.SGBSTDN_PIDM = X.SGBSTDN_PIDM
+    AND Y.SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND X.SGBSTDN_COLL_CODE_1 NOT IN ('PS','PL')
+AND X.SGBSTDN_PROGRAM_1 NOT IN ('NR041','NR02','TEAC03','NR06')
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = X.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > X.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 3, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 <> X.SGBSTDN_PROGRAM_1
+)
+and not exists (
+    select 1
+    from tbraccd 
+    join tbbdetc on tbbdetc_detail_code = tbraccd_detail_code
+        and tbbdetc_type_ind = 'C'
+        and tbbdetc_dcat_code = 'HOU'
+    where tbraccd_pidm = x.sgbstdn_pidm
+    and tbraccd_detail_code not in ('RLAF', 'HCBF', 'HCBS')
+    and tbraccd_term_code = rorprst_period
+    group by tbraccd_pidm, tbraccd_term_code
+    having sum(tbraccd_amount) > 0
+)
+-- AND X.SGBSTDN_PIDM = :PIDM
+-- END
+;
+
+-- END
+

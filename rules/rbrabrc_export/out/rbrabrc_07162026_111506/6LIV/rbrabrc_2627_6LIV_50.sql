@@ -1,0 +1,62 @@
+--UNDERGRAD TRANSFER NOT PS,PL,NR041,TEAC03, NR06 ENROLLED WITH SGASTDN
+SELECT CASE
+    WHEN NVL(ROKMISC.F_CALC_STUD_BILL_HRS(:PERIOD, X.SGBSTDN_PIDM, 'N'), 0) >= RORCRHR_HALF_TIME_CR_HRS
+        THEN RORALGS_AMT
+    END as calc_amt
+FROM SGBSTDN X, RORCRHR, RORALGS, ROBNYUD, RORPRST
+WHERE RORALGS_KEY_1 = 'PBDG'
+AND RORALGS_KEY_4 = '6LIV'
+AND CASE -- transfer student type
+    WHEN (X.SGBSTDN_STYP_CODE IN ('1','T')) THEN 'T'                   
+END = RORALGS_KEY_2 
+-- AND CASE -- OFF CAMPUS HOUSING FLAG IN ROBNYUD
+--     WHEN ROBNYUD_VALUE_120 IS NULL THEN '1'  --off campus 
+-- 	WHEN (ROBNYUD_VALUE_120 NOT IN ('C','D')) THEN '1'  --off campus 
+-- 	WHEN ROBNYUD_VALUE_120 = 'D' THEN '3'  --with family/relative
+AND CASE -- OFF CAMPUS HOUSING FLAG IN RORPRST
+	WHEN (
+        (
+            X.SGBSTDN_STYP_CODE in ('F', '1') 
+            and RORPRST_XHS_LOCK_IND = 'Y' 
+            and RORPRST_XHS = '3'
+        ) or (
+            X.SGBSTDN_STYP_CODE not in ('F', '1') 
+            and RORPRST_XHS = '3'
+        ) or ( 
+            ROBNYUD_VALUE_120 IS NULL 
+        ) or ( 
+            ROBNYUD_VALUE_120 NOT IN ('C','D')
+        )
+    ) THEN '1' -- off campus
+	WHEN (
+        (
+            X.SGBSTDN_STYP_CODE in ('F', '1') 
+            and RORPRST_XHS_LOCK_IND = 'Y' 
+            and RORPRST_XHS in ('1', '4')
+        ) or (ROBNYUD_VALUE_120 = 'D')
+    ) THEN '3' -- family/relative
+END = RORALGS_KEY_3
+AND CASE -- level code
+    WHEN X.SGBSTDN_LEVL_CODE = 'UG' THEN 'UG'
+END = RORALGS_KEY_5	
+AND CASE -- campus code
+    WHEN X.SGBSTDN_CAMP_CODE = 'FR' THEN 'FR'
+END = RORALGS_KEY_6
+AND X.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(Y.SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN Y
+    WHERE Y.SGBSTDN_PIDM = X.SGBSTDN_PIDM
+    AND Y.SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)	
+AND RORCRHR_AIDY_CODE = :AIDY
+AND RORCRHR_LEVL_CODE = X.SGBSTDN_LEVL_CODE
+AND RORCRHR_PERIOD = :PERIOD
+AND RORPRST_PERIOD = :PERIOD
+
+AND X.SGBSTDN_STST_CODE IN  ('AS','IL','P1')
+-- AND X.SGBSTDN_PIDM = :PIDM
+AND X.SGBSTDN_PIDM = (select spriden_pidm from spriden where spriden_change_ind is null and spriden_id = '001063572')
+AND ROBNYUD_PIDM = X.SGBSTDN_PIDM
+AND RORPRST_PIDM = X.SGBSTDN_PIDM
+AND RORALGS_AIDY_CODE = :AIDY
+-- END

@@ -159,5 +159,5 @@ AND (
             AND Z.SARAPPD_APPL_NO = D.SARAPPD_APPL_NO
         ) 
     )
-)
+);
 -- and spriden_id = '000241123';

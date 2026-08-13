@@ -1,0 +1,101 @@
+-- Business Software Fee
+-- seq 1
+SELECT RORALGS_AMT
+FROM SGBSTDN a
+JOIN RORALGS on RORALGS_AIDY_CODE = :AIDY
+    and RORALGS_KEY_1 = 'PBDG'
+    and RORALGS_KEY_4 = '21BF'
+    and RORALGS_KEY_5 = a.SGBSTDN_LEVL_CODE
+    and RORALGS_KEY_7 = a.SGBSTDN_COLL_CODE_1
+WHERE a.SGBSTDN_STST_CODE in ('AS', 'IL')
+AND a.SGBSTDN_LEVL_CODE = 'UG'
+AND a.SGBSTDN_COLL_CODE_1 = 'BA'
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    select max(z.SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN z
+    WHERE z.SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND z.SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND NOT EXISTS (
+    select 1 from SGRSATT b
+    where b.SGRSATT_PIDM = a.SGBSTDN_PIDM
+    and b.SGRSATT_ATTS_CODE = 'SPSA'
+    and b.SGRSATT_TERM_CODE_EFF = (
+        select max(z.SGRSATT_TERM_CODE_EFF)
+        from SGRSATT z
+        where z.SGRSATT_PIDM = b.SGRSATT_PIDM
+        and z.SGRSATT_TERM_CODE_EFF <= :PERIOD
+    )
+)
+-- AND a.SGBSTDN_CAMP_CODE = 'FR'
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP x
+    INNER JOIN SARAPPD y on y.SARAPPD_PIDM = x.SARADAP_PIDM
+        AND y.SARAPPD_APPL_NO = x.SARADAP_APPL_NO
+        AND y.SARAPPD_TERM_CODE_ENTRY = x.SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC z on z.STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND z.STVAPDC_INST_ACC_IND = 'Y'
+        AND z.STVAPDC_SIGNF_IND = 'Y'
+    WHERE x.SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND x.SARADAP_TERM_CODE_ENTRY > a.SGBSTDN_TERM_CODE_EFF 
+    AND x.SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 3, 2) as int) + 1 || '00')
+    AND x.SARADAP_PROGRAM_1 <> a.SGBSTDN_PROGRAM_1
+)
+-- AND a.SGBSTDN_PIDM = :PIDM
+-- AND a.SGBSTDN_PIDM = (select spriden_pidm from spriden where spriden_change_ind is null and spriden_id = '001430127')
+
+
+--  ;
+
+; 
+
+select * from roralgs where RORALGS_KEY_1 = 'PBDG'
+    and RORALGS_KEY_4 = '21BF'
+    and RORALGS_KEY_5 = 'UG'
+    and RORALGS_KEY_7 = 'BA'
+;
+desc rbrapbc;
+select count(distinct rbrapbc_pidm) from rbrapbc where rbrapbc_run_name = 'ACTUAL' and rbrapbc_pbcp_code = '21BF' and rbrapbc_period = '202710';
+
+-- Business Software Fee
+-- seq 1
+select count(distinct pidm) from (
+SELECT a.sgbstdn_pidm as pidm, RORALGS_AMT
+FROM SGBSTDN a
+CROSS JOIN RORALGS
+WHERE RORALGS_KEY_1 = 'PBDG'
+AND a.SGBSTDN_STST_CODE in ('AS', 'IL')
+AND RORALGS_KEY_4 = '21BF' --check on component code
+AND RORALGS_KEY_5 = 'UG'
+AND a.SGBSTDN_TERM_CODE_EFF = (
+    SELECT MAX(SGBSTDN_TERM_CODE_EFF)
+    FROM SGBSTDN
+    WHERE SGBSTDN_PIDM = a.SGBSTDN_PIDM
+    AND SGBSTDN_TERM_CODE_EFF <= :PERIOD
+)
+AND CASE
+    WHEN (a.SGBSTDN_COLL_CODE_1 = 'BA') THEN 'BA'
+END = RORALGS_KEY_7
+AND a.SGBSTDN_CAMP_CODE = 'FR'
+AND NOT EXISTS (
+    SELECT 1
+    FROM SARADAP
+    INNER JOIN SARAPPD
+        ON SARAPPD_PIDM = SARADAP_PIDM
+        AND SARAPPD_APPL_NO = SARADAP_APPL_NO
+        AND SARAPPD_TERM_CODE_ENTRY = SARADAP_TERM_CODE_ENTRY
+    INNER JOIN STVAPDC
+        ON STVAPDC_CODE = SARAPPD_APDC_CODE
+        AND STVAPDC_INST_ACC_IND = 'Y'
+        AND STVAPDC_SIGNF_IND = 'Y'
+    WHERE SARADAP_PIDM = a.SGBSTDN_PIDM
+    AND SARADAP_TERM_CODE_ENTRY > a.SGBSTDN_TERM_CODE_EFF 
+    AND SARADAP_TERM_CODE_ENTRY <= ('20' || cast(substr(:AIDY, 3, 2) as int) + 1 || '00')
+    AND SARADAP_PROGRAM_1 <> a.SGBSTDN_PROGRAM_1
+)
+-- AND a.SGBSTDN_PIDM = :PIDM
+AND RORALGS_AIDY_CODE = :AIDY
+) 
+--  ;
+;

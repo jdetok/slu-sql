@@ -10,11 +10,12 @@ oracledb.init_oracle_client(lib_dir="/Users/dekockjt/oracle/instantclient_23_26"
 from datetime import datetime
 from dotenv import load_dotenv
 from io import BytesIO
+from glob import glob
 import pandas as pd
 import requests
 import zipfile
 import json
-import glob
+
 import sys
 import os
 
@@ -143,11 +144,12 @@ update robusdf set
     robusdf_value_326 = {row["Enrollment - F/S/R_3"] if pd.notna(row["Enrollment - F/S/R_3"]) else "null"}
 where robusdf_pidm = {row['pidm']} 
 and robusdf_aidy_code = '{AIDY}' 
-and (robusdf_value_321 is null or to_date(robusdf_value_321, 'MM/DD/YYYY HH24:MI:SS') < {comp_todate});
+and (robusdf_value_321 is null or to_date(robusdf_value_321, 'DD-MON-RR') < {comp_todate});
 """.strip()
         sqls.append(sql)
     return sqls
 
+# output each update statement to a file
 def output_sqls(sqls: list[str], fname=FNAME):
     with open(fname, 'w') as f:
         f.write('\n'.join(sqls) + '\n')
@@ -156,7 +158,7 @@ def output_sqls(sqls: list[str], fname=FNAME):
 def main():
     # if passed with an argument, skip api call and read most recent raw fetch
     if len(sys.argv) > 1:
-        file = max(glob.glob('./raw/*.csv'), key=os.path.getmtime)
+        file = max(glob('./raw/*.csv'), key=os.path.getmtime)
     else:
         file = export_survey(api_key, surv_id, dta_ctr, './raw')
 
@@ -192,6 +194,8 @@ def main():
     # output update statements to .sql file
     print(f'Writing {len(sqls)} update statements to {FNAME}')
     output_sqls(sqls)
+
+    print('complete')
     
 if __name__=='__main__':
     main()
