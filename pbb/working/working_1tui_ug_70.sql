@@ -11,7 +11,7 @@ left join SGRSATT b on b.SGRSATT_PIDM = x.SGBSTDN_PIDM
         WHERE Y.SGRSATT_TERM_CODE_EFF <= :PERIOD
         AND Y.SGRSATT_PIDM =  b.SGRSATT_PIDM
     )
-    and sgrsatt_atts_code in ('PSMV', 'PS15')
+    and sgrsatt_atts_code in ('PSMV', 'PS15', 'REGV', 'REGF')
 left join RORALGS on RORALGS_AIDY_CODE = :AIDY
     and RORALGS_KEY_1 = 'PBDG'
     AND RORALGS_KEY_4 = '1TUI'
