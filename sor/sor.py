@@ -116,8 +116,8 @@ def get_pidms(conn: oracledb.Connection, bids: list[str]) -> dict[str, int]:
     CHUNK = 1000
     with conn.cursor() as cur:
         for i in range(0, len(bids), CHUNK):
-            chunk = bids[i:i + CHUNK]
-            placeholders = ','.join(f':{j}' for j in range(len(chunk)))
+            chunk = [str(b) for b in bids[i:i + CHUNK]]
+            placeholders = ','.join(f':{j+1}' for j in range(len(chunk)))
             sql = f'''
                 select spriden_pidm, spriden_id 
                 from spriden where spriden_change_ind is null 
