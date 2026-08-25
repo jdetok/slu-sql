@@ -77,7 +77,9 @@ def export_survey(api_key, surv_id, dta_ctr, dir) -> str:
     extractedFile = os.path.join(dir, surveyName)
     
     # create the new file name and use it to rename the original
-    newFile = os.path.join(dir, f"{(surveyName.replace('.csv', '')).replace(' ', '_')}_{datetime.now().strftime('%m%d%Y_%H%M%S')}.csv")
+    newFile = os.path.join(dir, 
+        f"{(surveyName.replace('.csv', '')).replace(' ', '_')}_{datetime.now().strftime('%m%d%Y_%H%M%S')}.csv"
+    )
     os.rename(extractedFile, newFile)
 
     print(f'Raw export file saved as {newFile}')
