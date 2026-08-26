@@ -14,23 +14,38 @@ evaluating once a student has been grouped, similar to in banner.
 
 for example, if PROFL is run first, and the student groups into PROFL, 
 they should not show up on the report later on due to te GR/PRL rule or any other
+
+08/25/2026
+adapt to work for Period Budgeting rules as well
 """
 
+MODE = 'P' # G for period budget grouping, P for packing groups
+
 # rules to run
-INC_RULES = ['MED4L', 'MED3L', 'MED2L', 'MED1L', 'LAWL', 'PROFL', 'GR/PRL'] 
+INC_RULES = ['MED4L', 'MED3L', 'MED2L', 'MED1L', 'LAWL', 'PROFL', 'GR/PRL']
+INC_G_RULES = ['GR', 'UG', 'PL', 'PM', 'MR']
 OUT_DIR = Path(f"./out/legacy_pkg_var_{datetime.now().strftime('%m%d%Y_%H%M%S')}")
-AIDY = '2627'
-BINDS = {'aidy': AIDY} # query bind variables
+BINDS = {'aidy': '2627'} # query bind variables
 
-PHOLD_RSTAT = ', '.join(f"'{i}'" for i in INC_RULES)
-QUERY_RSTAT = f'select rorstat_pidm, rorstat_pgrp_code from rorstat where rorstat_pgrp_code in ({PHOLD_RSTAT}) and rorstat_aidy_code = :aidy'
+PHOLD_RORSTAT = ', '.join(f"'{i}'" for i in INC_RULES)
+QUERY_RORSTAT = f'''
+select rorstat_pidm, rorstat_pgrp_code from rorstat 
+where rorstat_pgrp_code in ({PHOLD_RORSTAT}) and rorstat_aidy_code = :aidy
+'''
 
-QUERY_RORSTAT = 'select rorstat_pidm from rorstat where rorstat_pgrp_code in :pgrp and rorstat_aidy_code = :aidy'
+PHOLD_RBRAPBG = ', '.join(f"'{i}'" for i in INC_G_RULES)
+QUERY_RBRAPBG = f'''
+select distinct rbrapbg_pidm, rbrapbg_pbgp_code from rbrapbg
+where rbrapbg_run_name = 'ACTUAL'
+and rbrapbg_aidy_code = :aidy
+and rbrapbg_pbgp_code in ({PHOLD_RBRAPBG}) and rbrapbg_period = '202710'
+'''
+
 QUERY_SPRIDEN = 'select spriden_pidm, spriden_id from spriden where spriden_change_ind is null and spriden_pidm = :pidm'
-QUERY_RORCMPL = '''
+QUERY_RORCMPL = f'''
 select rorgdat_grp_code, rorgdat_aidy_code, rorgdat_type_ind, rorgdat_slct, rorcmpl_sql_statement
 from rorgdat join rorcmpl on rorcmpl_slct = rorgdat_slct
-where rorgdat_aidy_code = :aidy and rorgdat_type_ind = 'P'
+where rorgdat_aidy_code = :aidy and rorgdat_type_ind = '{MODE}'
 '''
 
 def connectToDB() -> oracledb.Connection:
@@ -66,13 +81,15 @@ def main():
     # map with pidms for current groups in rorstat
     print('querying rorstat for current package group populations...')
     grps_current = {}
-    with connectToDB() as conn:
-        with conn.cursor() as cur:
-            cur.execute(QUERY_RSTAT, BINDS)
-            for pidm, grp in cur:
-                if grp not in grps_current:
-                    grps_current[grp] = set()
-                grps_current[grp].add(pidm)
+    try:
+        with connectToDB() as conn:
+            with conn.cursor() as cur:
+                cur.execute(QUERY_RORSTAT if MODE == 'P' else QUERY_RBRAPBG, BINDS)
+                for pidm, grp in cur:
+                    if grp not in grps_current:
+                        grps_current[grp] = set()
+                    grps_current[grp].add(pidm)
+    except: print('error')
 
     # query rules from rorcmpl
     print('querying rorcmpl for packaging rules...')
@@ -99,7 +116,7 @@ def main():
 
     # run the sql rules for the included group codes
     for grp, rule_sql in rules.items():
-        if grp in INC_RULES:
+        if grp in INC_G_RULES if MODE == 'G' else INC_RULES:
             print(f'Running {grp} rule...')
 
             # collect pidms that don't exist in both
