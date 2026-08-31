@@ -26,10 +26,11 @@ WHERE column_name LIKE '%DELI_CODE%'
 and OWNER = 'TAISMGR'
 ORDER BY table_name;
 
-select spriden_id as bid
+select spriden_id as bid, 'Y' as has_pplan
 from tbbacct 
 join spriden on spriden_change_ind is null and spriden_pidm = tbbacct_pidm
-where tbbacct_deli_code in ('TN', 'DP', 'DM', 'DS');
+where tbbacct_deli_code in ('TN', 'DP', 'DM', 'DS', 'SN', 'SP')
+;
 
 select spriden_id as bid, rcrapp4_sar_efc as sai
 from rcrapp1 
