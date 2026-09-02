@@ -144,4 +144,3 @@ AND (
 )
 -- AND A.SGBSTDN_PIDM = :PIDM
 ;
-
