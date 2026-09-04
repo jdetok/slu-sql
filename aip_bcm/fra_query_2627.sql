@@ -40,10 +40,10 @@ select * from gcvasts;
 
 
 select * from gcbapst order by gcbapst_activity_date desc;
-delete from gcbapst where gcbapst_name = 'sfra_test_post_prod';
 
 
 select * from gcbajob order by gcbajob_creation_date desc;
+
 
 -- NOT COMPLETE QUERY
 select a.gcraact_pidm
