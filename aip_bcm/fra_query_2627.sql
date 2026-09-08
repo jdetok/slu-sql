@@ -31,15 +31,23 @@ and not exists (
 )
 ;
 
-select gcraact_pidm from gcraact
+select * from gcraact
 where gcraact_gcbactm_id = 4
 and gcraact_gcvasts_id = 1
 ;
 
+select * from gcraact
+where gcraact_gcbactm_id = 3
+and gcraact_gcvasts_id = 1
+;
+select * from gcbactm;
 select * from gcvasts;
+select * from gcraisr;
 
 
 select * from gcbapst order by gcbapst_activity_date desc;
+select * from gcbapst order by gcbapst_activity_date;
+
 
 
 select * from gcbajob order by gcbajob_creation_date desc;
@@ -79,7 +87,7 @@ and (
 
 
 
-select * from gcraact where gcraact_gcbactm_id = 4
+select * from gcraact where gcraact_gcbactm_id = 4 and gcraact_gcvasts_id <> 1
 ;
 
 select a.gcraact_pidm
@@ -114,3 +122,15 @@ where a.gcraact_gcbactm_id = 3
   ;
 
   select * from robusdf where robusdf_aidy_code = '2627' and robusdf_value_321 is not null;
+
+
+  select * from gcracnt where gcracnt_gcbactm_id = 4;
+  select * from gcbactm;
+  select * from gcraisr;
+
+insert into gcraisr (
+    gcraisr_gcbactm_id, gcraisr_seq_order, gcraisr_label_text, gcraisr_activity_date, gcraisr_gcvasts_id,
+    gcraisr_resubmit_ind, gcraisr_version, gcraisr_rev_req_ind, gcraisr_allowed_attachment, gcraisr_user_id
+) values (4, 0, 'I Accept', to_date('09/08/2026', 'MM/DD/YYYY'), 2, null, 0, 'N', 0, 'DEKOCKJT');
+
+select to_date('09/08/2026', 'MM/DD/YYYY') from dual;
