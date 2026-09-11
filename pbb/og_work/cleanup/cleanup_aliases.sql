@@ -7,6 +7,11 @@ from rbrabrc
 where regexp_like(rbrabrc_sql_statement, '^FROM\s[A-Za-z]+\sX,\s[A-Za-z]+\sX', 'm')
 order by rbrabrc_abrc_code, rbrabrc_seq_no;
 
+select rbrabrc_abrc_code, rbrabrc_seq_no 
+from rbrabrc 
+where regexp_like(rbrabrc_sql_statement, 'SPSA', 'm')
+order by rbrabrc_abrc_code, rbrabrc_seq_no;
+
 -- do one to find starts with spaces
 -- have to use [[:blank]] over \r\n\t escape sequences as oracle follows posix regex standards
 SELECT rbrabrc_abrc_code, rbrabrc_seq_no 
