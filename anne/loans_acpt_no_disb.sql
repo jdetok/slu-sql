@@ -11,6 +11,5 @@ left join spbpers on spbpers_pidm = rprawrd_pidm
 where rprawrd_fund_code in ('DLUL', 'DLAL', 'DLGL', 'DLPL', 'DLSL')
 and rprawrd_awst_code in ('OFRD', 'ACPT')
 and (rprawrd_paid_amt is null or rprawrd_paid_amt = 0)
-and rprawrd_aidy_code = '" & aidy & "'
+and rprawrd_aidy_code = '2526'
 ;
-select * from spbpers;
