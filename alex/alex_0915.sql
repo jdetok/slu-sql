@@ -78,3 +78,22 @@ from tbbacct
 where tbbacct_deli_code in ('TN', 'DP', 'DM', 'DS', 'SN', 'SP')
 ;
 
+
+with fafsa as (
+    select
+        rcrapp1_pidm as pidm,
+        rcrapp1_aidy_code as aidy,
+        rcrapp4_sar_efc as sai
+    from rcrapp1
+    join rcrapp4 on rcrapp4_pidm = rcrapp1_pidm
+        and rcrapp4_seq_no = rcrapp1_seq_no
+        and rcrapp4_aidy_code = rcrapp1_aidy_code
+        and rcrapp4_infc_code = rcrapp1_infc_code
+    where rcrapp1_aidy_code = '2627'
+    and rcrapp1_curr_rec_ind = 'Y'
+    and rcrapp1_infc_code = 'EDE'
+)
+select spriden_id as bid, aidy, sai from fafsa
+join spriden on spriden_pidm = pidm and spriden_change_ind is null;
+
+select * from robusdf where robusdf_value_321 is not null and robusdf_aidy_code = '2627';

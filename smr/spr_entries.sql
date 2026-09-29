@@ -31,46 +31,40 @@ with term as (
 select 
     distinct spriden_id as id, 
     spriden_last_name || ', ' || spriden_first_name as name, 
+    a.saradap_term_code_entry as period,
     r.rorstat_aprd_code as aprd, 
-    r.rorstat_tgrp_code as tgrp, 
-    r.rorstat_bgrp_code as bgrp, 
+    r.rorstat_tgrp_code as tgrp,  
     g.rbrapbg_pbgp_code as pbgrp,
     r.rorstat_pgrp_code as pgrp,
-    r2.rorstat_pgrp_code as pgrp_nextyear,
     a.saradap_levl_code as levl, 
     a.saradap_coll_code_1 as college, 
     a.saradap_program_1 as program,
-    e.slu, 
-    e.pers, 
-    f.sai, 
     nvl(rokmisc.f_calc_stud_bill_hrs(a.saradap_term_code_entry, a.saradap_pidm, 'N'), 0) as hrs,
-    t.rrrareq_trst_code as sumapp_rrrareq, 
+    f.sai, 
     s.ofrd as total_ofrd, 
     s.acpt as total_acpt,
     s.paid as total_paid,
-    a.saradap_term_code_entry as period, 
-    to_char(sysdate, 'MM/DD/YYYY HH:MI:SS') as last_update
+    robnyud_value_28,
+    robusdf_value_170,
+    robusdf_value_189,
+    e.slu, 
+    e.pers
+    -- to_char(sysdate, 'MM/DD/YYYY HH:MI:SS') as last_update
 from saradap a
 join sarappd b on b.sarappd_pidm = a.saradap_pidm 
     and b.sarappd_term_code_entry = a.saradap_term_code_entry
     and b.sarappd_appl_no = a.saradap_appl_no
 join stvapdc c on c.stvapdc_code = b.sarappd_apdc_code
+    and c.stvapdc_inst_acc_ind = 'Y'
 join spriden on spriden_pidm = a.saradap_pidm and spriden_change_ind is null
-join robinst on robinst_aidy_code = (
-    select robinst_aidy_code - 101
-    from robinst
-    where robinst_aidy_end_year = substr(saradap_term_code_entry, 0, 4)
-)
+join robinst on robinst_aidy_end_year = substr(saradap_term_code_entry, 0, 4)
+join robusdf on robusdf_pidm = a.saradap_pidm and robusdf_aidy_code = robinst_aidy_code
+join robnyud on robnyud_pidm = a.saradap_pidm
 left join emails e on e.pidm = a.saradap_pidm
 left join fafsa f on f.pidm = a.saradap_pidm and f.aidy = robinst_aidy_code
 left join awarded s on s.pidm = a.saradap_pidm and s.rpratrm_term_code = a.saradap_term_code_entry
 left join rorstat r on r.rorstat_pidm = a.saradap_pidm
     and r.rorstat_aidy_code = robinst_aidy_code
-left join rorstat r2 on r2.rorstat_pidm = a.saradap_pidm
-    and r2.rorstat_aidy_code = (robinst_aidy_code + 101)
-left join rrrareq t on t.rrrareq_pidm = a.saradap_pidm
-    and t.rrrareq_aidy_code = robinst_aidy_code
-    and t.rrrareq_treq_code = 'SUMAPP'
 left join rbrapbg g on g.rbrapbg_pidm = a.saradap_pidm
     and g.rbrapbg_period = :term
     and g.rbrapbg_run_name = 'ACTUAL'
@@ -86,3 +80,4 @@ and b.sarappd_seq_no = (
 );
 
 select * from rbrapbg;
+select * from robinst;

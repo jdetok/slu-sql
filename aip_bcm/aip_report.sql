@@ -43,3 +43,15 @@ where gcraact_gcbactm_id = 3
 and gcraact_gcvasts_id <> 2
 and gcraact_display_start_date between to_date('07/01/2025', 'MM/DD/YYYY') and to_date('06/30/2026', 'MM/DD/YYYY');
 select * from gcvasts;
+
+select * from gcraact
+where gcraact_pidm = (select spriden_pidm from spriden where spriden_change_ind is null and spriden_id = '001525875');
+
+select * from gcvasts;
+
+select count(distinct gcraact_pidm) from gcraact
+where gcraact_gcbactm_id = 4
+and gcraact_gcvasts_id = 2
+;
+
+select * from gcbactm; 
