@@ -39,3 +39,72 @@ and robusdf_value_321 is not null
 select * from robusdf where robusdf_pidm = 1289005;
 
 select * from robinst;
+
+select 
+    rpratrm_pidm as pidm,
+    spriden_id as bid,
+    rpratrm_term_code as term,
+    rpratrm_fund_code as fund
+from rpratrm
+join sgbstdn a on a.sgbstdn_pidm = rpratrm_pidm
+    and a.sgbstdn_stst_code in ('AS', 'IL', 'P1')
+    and a.sgbstdn_term_code_eff = (
+        select max(z.sgbstdn_term_code_eff) from sgbstdn z
+        where z.sgbstdn_pidm = a.sgbstdn_pidm
+        and z.sgbstdn_term_code_eff <= rpratrm_term_code
+    )
+join rorcrhr on rorcrhr_period = rpratrm_term_code and rorcrhr_levl_code = a.sgbstdn_levl_code
+join spriden on spriden_pidm = rpratrm_pidm and spriden_change_ind is null
+where rpratrm_term_code = '202710'
+and rpratrm_fund_code in ('DLUL', 'DLSL', 'DLAL', 'DLGL')
+and not exists (
+    select 1 from robusdf
+    where robusdf_pidm = rpratrm_pidm
+    and robusdf_aidy_code = rpratrm_aidy_code
+    and robusdf_value_321 is not null
+)
+and exists (
+    select 1 from (
+        select sum(sfrstcr_bill_hr) as hrs from sfrstcr
+        where sfrstcr_pidm = rpratrm_pidm
+        and sfrstcr_term_code = rpratrm_term_code
+        and not regexp_like(sfrstcr_rsts_code, '^D.|^W.')
+        and sfrstcr_bill_hr is not null
+    ) where hrs < rorcrhr_half_time_cr_hrs
+)
+;
+select 
+    rpratrm_pidm as pidm,
+    spriden_id as bid
+from rpratrm
+join sgbstdn a on a.sgbstdn_pidm = rpratrm_pidm
+    and a.sgbstdn_stst_code in ('AS', 'IL', 'P1')
+    and a.sgbstdn_term_code_eff = (
+        select max(z.sgbstdn_term_code_eff) from sgbstdn z
+        where z.sgbstdn_pidm = a.sgbstdn_pidm
+        and z.sgbstdn_term_code_eff <= rpratrm_term_code
+    )
+join rorcrhr on rorcrhr_period = rpratrm_term_code and rorcrhr_levl_code = a.sgbstdn_levl_code
+join spriden on spriden_pidm = rpratrm_pidm and spriden_change_ind is null
+where rpratrm_term_code = '202710'
+and rpratrm_fund_code in ('DLUL', 'DLSL', 'DLAL', 'DLGL')
+and not exists (
+    select 1 from robusdf
+    where robusdf_pidm = rpratrm_pidm
+    and robusdf_aidy_code = rpratrm_aidy_code
+    and robusdf_value_321 is not null
+)
+-- and exists (
+--     select 1 from (
+--         select sum(sfrstcr_bill_hr) as hrs from sfrstcr
+--         where sfrstcr_pidm = rpratrm_pidm
+--         and sfrstcr_term_code = rpratrm_term_code
+--         and not regexp_like(sfrstcr_rsts_code, '^D.|^W.')
+--         and sfrstcr_bill_hr is not null
+--     ) where hrs < rorcrhr_half_time_cr_hrs
+-- )
+and rokmisc.f_calc_stud_bill_hrs(rpratrm_term_code, rpratrm_pidm, 'N') < rorcrhr_half_time_cr_hrs
+;
+select * from rorcrhr;
+
+select * from sfrstcr;
