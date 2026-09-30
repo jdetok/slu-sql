@@ -94,6 +94,7 @@ with fl as (
     from non_need
 )
 select 
+    a.pidm,
     spriden_id as bid, 
     spriden_last_name || ', ' || spriden_first_name as name,
     a.aidy, 
@@ -114,7 +115,7 @@ left join need_based e on e.pidm = a.pidm and e.aidy = a.aidy
 where a.aidy = :aidy
 and a.ofrd > c.budg
 ;
-
+desc rnkneed;
 -- PBI version
 with fl as (
     select robinst_aidy_end_year || '10' as term
@@ -229,3 +230,8 @@ left join need_based e on e.pidm = a.pidm and e.aidy = a.aidy
 where a.aidy = '" & aidy & "'
 and a.ofrd > c.budg
 ;
+desc rnkneed;
+select rnkneed.f_calc_period_budget_amt(1217599, '2627') from dual;
+select spriden_id from spriden where spriden_pidm = 1217599 and spriden_change_ind is null;
+
+select rnkneed.F_CALC_PRORATED_PERIOD_NO_RND(1217599, '2627', 'ACTUAL', '202710') from dual;

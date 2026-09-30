@@ -25,7 +25,7 @@ select
     distinct spriden_id as id, 
     spriden_pidm,
     spriden_last_name || ', ' || spriden_first_name as name, 
-    a.saradap_term_code_entry as period,
+    a.saradap_term_code_entry as term,
     r.rorstat_aprd_code as aprd, 
     r.rorstat_tgrp_code as tgrp,  
     g.rbrapbg_pbgp_code as bgrp_fall,
@@ -36,9 +36,12 @@ select
     a.saradap_program_1 as program,
     nvl(rokmisc.f_calc_stud_bill_hrs(a.saradap_term_code_entry, a.saradap_pidm, 'N'), 0) as hrs,
     f.sai, 
-    s.ofrd as total_ofrd, 
-    s.acpt as total_acpt,
-    s.paid as total_paid,
+    s.ofrd as ofrd_fall, 
+    s.acpt as acpt_fall,
+    s.paid as paid_fall,
+    s2.ofrd as ofrd_spr, 
+    s2.acpt as acpt_spr,
+    s2.paid as paid_spr,
     robnyud_value_28,
     robusdf_value_170,
     robusdf_value_189,
@@ -54,7 +57,8 @@ join robinst on robinst_aidy_end_year = substr(saradap_term_code_entry, 0, 4)
 join robusdf on robusdf_pidm = a.saradap_pidm and robusdf_aidy_code = robinst_aidy_code
 join robnyud on robnyud_pidm = a.saradap_pidm
 left join fafsa f on f.pidm = a.saradap_pidm and f.aidy = robinst_aidy_code
-left join awarded s on s.pidm = a.saradap_pidm and s.rpratrm_term_code = a.saradap_term_code_entry
+left join awarded s on s.pidm = a.saradap_pidm and s.rpratrm_term_code = substr(:term, 0, 4) || '10'
+left join awarded s2 on s2.pidm = a.saradap_pidm and s2.rpratrm_term_code = substr(:term, 0, 4) || '20'
 left join rorstat r on r.rorstat_pidm = a.saradap_pidm
     and r.rorstat_aidy_code = robinst_aidy_code
 left join rbrapbg g on g.rbrapbg_pidm = a.saradap_pidm
@@ -110,7 +114,7 @@ with term as (
 select 
     distinct spriden_id as id, 
     spriden_last_name || ', ' || spriden_first_name as name, 
-    a.saradap_term_code_entry as period,
+    a.saradap_term_code_entry as term,
     r.rorstat_aprd_code as aprd, 
     r.rorstat_tgrp_code as tgrp,  
     g.rbrapbg_pbgp_code as bgrp_fall,
@@ -121,9 +125,12 @@ select
     a.saradap_program_1 as program,
     nvl(rokmisc.f_calc_stud_bill_hrs(a.saradap_term_code_entry, a.saradap_pidm, 'N'), 0) as hrs,
     f.sai, 
-    s.ofrd as total_ofrd, 
-    s.acpt as total_acpt,
-    s.paid as total_paid,
+    s.ofrd as ofrd_fall, 
+    s.acpt as acpt_fall,
+    s.paid as paid_fall,
+    s2.ofrd as ofrd_spr, 
+    s2.acpt as acpt_spr,
+    s2.paid as paid_spr,
     robnyud_value_28,
     robusdf_value_170,
     robusdf_value_189,
@@ -139,7 +146,8 @@ join robinst on robinst_aidy_end_year = substr(saradap_term_code_entry, 0, 4)
 join robusdf on robusdf_pidm = a.saradap_pidm and robusdf_aidy_code = robinst_aidy_code
 join robnyud on robnyud_pidm = a.saradap_pidm
 left join fafsa f on f.pidm = a.saradap_pidm and f.aidy = robinst_aidy_code
-left join awarded s on s.pidm = a.saradap_pidm and s.rpratrm_term_code = a.saradap_term_code_entry
+left join awarded s on s.pidm = a.saradap_pidm and s.rpratrm_term_code = substr('" & term & "', 0, 4) || '10'
+left join awarded s2 on s2.pidm = a.saradap_pidm and s2.rpratrm_term_code = substr('" & term & "', 0, 4) || '20'
 left join rorstat r on r.rorstat_pidm = a.saradap_pidm
     and r.rorstat_aidy_code = robinst_aidy_code
 left join rbrapbg g on g.rbrapbg_pidm = a.saradap_pidm
