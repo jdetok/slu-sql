@@ -36,14 +36,34 @@ left join rcrlds4 on rcrlds4_pidm = robusdf_pidm
 where robusdf_aidy_code = '2627'
 and robusdf_value_321 is not null
 ;
-
+select * from smrprle
+;
 -- accepted loans, LHT, has not completed SOR survey
+with bal as (
+    select 
+        tbraccd_pidm as pidm,
+        tbraccd_term_code as term,
+        sum(tbraccd_balance) as balance
+    from tbraccd
+    group by tbraccd_pidm, tbraccd_term_code
+)
 select 
     rpratrm_pidm as pidm,
     spriden_id as bid,
+    spriden_last_name || ', ' || spriden_first_name as name,
     rpratrm_term_code as term,
-    rpratrm_fund_code as fund
+    rpratrm_fund_code as fund,
+    nvl(rokmisc.f_calc_stud_bill_hrs(robinst_aidy_end_year || '10', rpratrm_pidm, 'N'), 0) as hrs,
+    balance,
+    a.sgbstdn_levl_code as levl,
+    a.sgbstdn_coll_code_1 as coll_cde,
+    sc.stvcoll_desc as coll,
+    a.sgbstdn_program_1 as prog_cde,
+    p.smrprle_program_desc as prog,
+    a.sgbstdn_majr_code_1 as majr_cde,
+    m.stvmajr_desc as majr
 from rpratrm
+join robinst on robinst_aidy_code = rpratrm_aidy_code and robinst_status_ind = 'A'
 join sgbstdn a on a.sgbstdn_pidm = rpratrm_pidm
     and a.sgbstdn_stst_code in ('AS', 'IL', 'P1')
     and a.sgbstdn_term_code_eff = (
@@ -51,8 +71,12 @@ join sgbstdn a on a.sgbstdn_pidm = rpratrm_pidm
         where z.sgbstdn_pidm = a.sgbstdn_pidm
         and z.sgbstdn_term_code_eff <= rpratrm_term_code
     )
+join stvmajr m on m.stvmajr_code = a.sgbstdn_majr_code_1
+join stvcoll sc on sc.stvcoll_code = a.sgbstdn_coll_code_1
+join smrprle p on p.smrprle_program = a.sgbstdn_program_1
 join rorcrhr on rorcrhr_period = rpratrm_term_code and rorcrhr_levl_code = a.sgbstdn_levl_code
 join spriden on spriden_pidm = rpratrm_pidm and spriden_change_ind is null
+left join bal on bal.pidm = a.sgbstdn_pidm and bal.term = rpratrm_term_code
 where rpratrm_term_code = '202710'
 and rpratrm_fund_code in ('DLUL', 'DLSL', 'DLAL', 'DLGL')
 and not exists (
