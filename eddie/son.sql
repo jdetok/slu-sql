@@ -43,7 +43,7 @@ with gross_need as (
     from non_need
 )
 select
-    spriden_id as bid, spriden_last_name || ', ' || spriden_first_name as name
+    spriden_id as bid, spriden_last_name || ', ' || spriden_first_name as name, a.sgbstdn_coll_code_1 as coll
 from sgbstdn a
 join spriden on spriden_pidm = a.sgbstdn_pidm and spriden_change_ind is null
 join robinst on robinst_aidy_code = '2627' and robinst_status_ind = 'A'
@@ -53,7 +53,7 @@ join spraddr s on s.spraddr_pidm = a.sgbstdn_pidm and s.spraddr_atyp_code = 'AD'
     and z.spraddr_atyp_code = s.spraddr_atyp_code
 )
 join unmet_need n on n.pidm = a.sgbstdn_pidm and n.aidy = robinst_aidy_code
-where a.sgbstdn_coll_code_1 = 'NR'
+where a.sgbstdn_levl_code = 'UG'
 and a.sgbstdn_stst_code in ('AS', 'IL', 'P1')
 and s.spraddr_stat_code <> 'MO'
 and n.amt > 0
