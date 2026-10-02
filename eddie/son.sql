@@ -47,7 +47,7 @@ select
 from sgbstdn a
 join spriden on spriden_pidm = a.sgbstdn_pidm and spriden_change_ind is null
 join robinst on robinst_aidy_code = '2627' and robinst_status_ind = 'A'
-join spraddr s on s.spraddr_pidm = a.sgbstdn_pidm and s.spraddr_atyp_code = 'AD' and s.spraddr_seqno = (
+join spraddr s on s.spraddr_pidm = a.sgbstdn_pidm and s.spraddr_atyp_code = 'MA' and s.spraddr_seqno = (
     select max(z.spraddr_seqno) from spraddr z
     where z.spraddr_pidm = s.spraddr_pidm
     and z.spraddr_atyp_code = s.spraddr_atyp_code
