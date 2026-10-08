@@ -1,13 +1,16 @@
 .DS_Store
 **/*.csv
+!elm/layout/*.csv
+**/*.pdf*
+!elm/layout/**/*.pdf
 **/*.doc*
 **/*.ppt*
-**/*.pdf*
 **/*.xls*
 **/*.env
 **/*.yxmd
 **/*.bak
 **/*.pbix
+**/*.SP2
 z_out/
 db_conn.md
 sor/out/

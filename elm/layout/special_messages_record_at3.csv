@@ -1,0 +1,9 @@
+﻿Field,Field Name,Required Field,Start Position,Length,Data Type,Justify,Padding
+1,Record Code,R,1,2,X(002),,
+2,Message 1,R,3,160,X(160),Left,Spaces
+3,Message 2,R,163,160,X(160),,
+4,Message 3,R,323,160,X(160),,
+5,Message 4,R,483,160,X(160),,
+6,Message 5,R,643,160,X(160),,
+7,Filler,—,803,237,X(237),,
+8,Record Terminator,R,1040,1,X(001),,

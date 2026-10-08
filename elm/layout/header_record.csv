@@ -1,0 +1,25 @@
+﻿Field,Field Name,Required Field,Start Position,Length,Data Type,Justify,Padding
+1,Record Code,R,1,2,X(002),,
+2,Software Product Code,O,3,4,X(004),Left,Spaces
+3,Software Version,O,7,4,X(004),Left,Spaces
+4,Batch ID,O,11,12,X(012),Left,Spaces
+5,File Creation Date (CCYYMMDD),R,23,8,9(008),,
+6,File Creation Time (HHMMSS),O,31,6,9(006),,
+7,File Transmission Date (CCYYMMDD),R,37,8,9(008),,
+8,File Transmission Time (HHMMSS),O,45,6,9(006),,
+9,File Identifier Name,R,51,19,X(019),Left,Spaces
+10,File Identifier Code,R,70,5,X(005),,
+11,Recipient Name,R,75,32,X(032),Left,Spaces
+12,Recipient ID,R,107,8,X(008),Left,Spaces
+13,Filler²,—,115,2,X(002),,
+14,Recipient Non-ED Branch ID,R¹,117,4,X(004),Left,Spaces
+15,Recipient Type Code,R,121,1,X(001),,
+16,Source Name,R,122,32,X(032),Left,Spaces
+17,Source ID,R,154,8,X(008),Left,Spaces
+18,Filler²,—,162,2,X(002),,
+19,Source Non-ED Branch ID,R¹,164,4,X(004),Left,Spaces
+20,Media Type Code,R,168,1,X(001),,
+21,DUNS Recipient ID,O,169,9,X(009),,
+22,DUNS Source ID,O,178,9,X(009),,
+23,Filler,—,187,853,X(853),,
+24,Record Terminator,R,1040,1,X(001),,

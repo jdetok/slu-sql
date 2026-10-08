@@ -1,0 +1,24 @@
+﻿Field,Field Name,Required Field,Start Position,Length,Data Type,Justify,Padding
+1,Record Code,R,1,2,X(002),,
+2,Response (@1) Detail Record Count,R,3,6,9(006),Right,Zeros
+3,Unique Supplemental (@2) Detail Record Count,R¹,9,6,9(006),Right,Zeros
+4,Special Messages (@3) Detail Record Count,R¹,15,6,9(006),Right,Zeros
+5,File Creation Date (CCYYMMDD),R,21,8,9(008),,
+6,File Creation Time (HHMMSS),O,29,6,9(006),,
+7,File Identifier Code,R,35,5,X(005),,
+8,Recipient Name,R,40,32,X(032),Left,Spaces
+9,Recipient ID,R,72,8,X(008),Left,Spaces
+10,Filler²,—,80,2,X(002),,
+11,Recipient Non-ED Branch ID,R¹,82,4,X(004),Left,Spaces
+12,Source Name,R,86,32,X(032),Left,Spaces
+13,Source ID,R,118,8,X(008),Left,Spaces
+14,Filler²,—,126,2,X(002),,
+15,Source Non-ED Branch ID,R¹,128,4,X(004),Left,Spaces
+16,Alternative Loan Response (@4) Detail Record Count,R¹,132,6,9(006),Right,Zeros
+17,Reference Response (@5) Detail Record Count,R¹,138,6,9(006),Right,Zeros
+18,Change Transaction Error (@6) Detail Record Count,R¹,144,6,9(006),Right,Zeros
+19,Supplemental Borrower Information Response (@7) Detail Record Count,R¹,150,6,9(006),Right,Zeros
+20,DUNS Recipient ID,O,156,9,X(009),,
+21,DUNS Source ID,O,165,9,X(009),,
+22,Filler,—,174,866,X(866),,
+23,Record Terminator,R,1040,1,X(001),,

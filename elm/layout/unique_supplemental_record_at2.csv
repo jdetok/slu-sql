@@ -1,0 +1,6 @@
+﻿Field,Field Name,Required Field,Start Position,Length,Data Type,Justify,Padding
+1,Record Code,R,1,2,X(002),,
+2,Unique Supplemental Vendor Code,R,3,4,X(004),Left,Spaces
+3,Unique Supplemental Layout Identifier Code,R,7,2,X(002),,
+4,Filler,—,9,1031,X(1031),,
+5,Record Terminator,R,1040,1,X(001),,
