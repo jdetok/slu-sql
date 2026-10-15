@@ -49,9 +49,13 @@ where gcraact_pidm = (select spriden_pidm from spriden where spriden_change_ind 
 
 select * from gcvasts;
 
-select count(distinct gcraact_pidm) from gcraact
+-- select count(distinct gcraact_pidm) from gcraact
+select spriden_id, gcvasts_status_rule_name from gcraact
+join spriden on spriden_pidm = gcraact_pidm and spriden_change_ind is null
+join gcvasts on gcvasts_surrogate_id = gcraact_gcvasts_id
 where gcraact_gcbactm_id = 4
-and gcraact_gcvasts_id = 2
+and spriden_id = '001518392'
+-- and gcraact_gcvasts_id = 2
 ;
 
-select * from gcbactm; 
+select * from gcvasts; 
