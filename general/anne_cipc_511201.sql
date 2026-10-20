@@ -89,6 +89,7 @@ AND (
     )
 )
 and spriden_id = '000241123';
+select * from sarappd where sarappd_pidm = (select spriden_pidm from spriden where spriden_id = '001493921' and spriden_change_ind is null);
 
 -- GR PB RORRULE
 SELECT A.RORSTAT_PIDM

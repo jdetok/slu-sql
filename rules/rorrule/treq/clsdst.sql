@@ -48,6 +48,6 @@ AND RORSTAT_PIDM = :PIDM
 -- 4641
 AND RORSTAT_PIDM    = (select spriden_pidm from spriden where spriden_id = '001275318' and spriden_change_ind is null)
 ;
-select * from sgbstdn where sgbstdn_pidm = (select spriden_pidm from spriden where spriden_id = '001275318' and spriden_change_ind is null)
+select * from sgbstdn where sgbstdn_pidm = (select spriden_pidm from spriden where spriden_id = '001493921' and spriden_change_ind is null)
 ;
-select * from saradap where saradap_pidm = (select spriden_pidm from spriden where spriden_id = '001275318' and spriden_change_ind is null);
+select * from sarappd where sarappd_pidm = (select spriden_pidm from spriden where spriden_id = '001493921' and spriden_change_ind is null);
