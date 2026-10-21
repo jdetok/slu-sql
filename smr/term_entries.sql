@@ -18,7 +18,7 @@ with term as (
         sum(rpratrm_paid_amt) as paid
     from rpratrm
     where rpratrm_offer_amt is not null
-    and rpratrm_accept_amt is not null
+    -- and rpratrm_accept_amt is not null
     group by rpratrm_pidm, rpratrm_term_code
 )
 select 
@@ -78,7 +78,7 @@ and b.sarappd_seq_no = (
     and sarappd_term_code_entry = b.sarappd_term_code_entry
 )
 ) 
--- where id in ('001431193', '001014444')
+where id in ('001360867')
 ;
 
 select * from rbrapbg g 
@@ -149,7 +149,7 @@ left join fafsa f on f.pidm = a.saradap_pidm and f.aidy = robinst_aidy_code
 left join awarded s on s.pidm = a.saradap_pidm and s.rpratrm_term_code = substr('" & term & "', 0, 4) || '10'
 left join awarded s2 on s2.pidm = a.saradap_pidm and s2.rpratrm_term_code = substr('" & term & "', 0, 4) || '20'
 left join rorstat r on r.rorstat_pidm = a.saradap_pidm
-    and r.rorstat_aidy_code = robinst_aidy_code
+    and r.rorstat_aidy_code = robinst_aidy_codes
 left join rbrapbg g on g.rbrapbg_pidm = a.saradap_pidm
     and g.rbrapbg_period = substr('" & term & "', 0, 4) || '10'
     and g.rbrapbg_run_name = 'ACTUAL'
