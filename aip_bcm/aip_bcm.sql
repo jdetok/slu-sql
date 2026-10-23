@@ -1,8 +1,12 @@
 select * from guaconf;
 desc GCBGSND;
-select * from GCBGSND;
+select * from GCBGSND 
+where gcbgsnd_poplist_id = 18;
 
+select * from gcbpopl;
 select gcbcrec_current_state from gcbcrec where gcbcrec_job_name = 'fra_reminder_recurring';
+select * from gcbcrec ;
+-- where gcbcrec_job_name = 'fra_reminder_recurring';
 
 SELECT table_name, comments
 FROM all_tab_comments

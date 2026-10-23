@@ -1,7 +1,12 @@
 -- LIV | TRS | MIS
 -- look for existence of PS2 or S8A part of term codes and NO OTHER part of term
+-- specifically SPS, 
 
--- GR TUITION
+-- 2FEE changes (make new rule for spring only)
+-- what does the new rule need to look for? 
+-- based on time status rather than hours for everybody
+
+-- GR TUITION: DONE
 -- if they have PS15 attr or PS% cohort, 15% off
 -- change sequences 233 235 236
 -- 233 - 13 from old rule
