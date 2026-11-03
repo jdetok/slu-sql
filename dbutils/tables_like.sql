@@ -1,7 +1,6 @@
-
 SELECT table_name, comments
 FROM all_tab_comments
-WHERE table_name LIKE '%CHRT%'
+WHERE table_name LIKE 'SH%GPA%'
 ORDER BY table_name;
 
 select * from stvmajr where stvmajr_code = 'BIOL';
