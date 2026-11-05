@@ -59,3 +59,6 @@ and gcraact_gcvasts_id = 2
 ;
 
 select * from gcvasts; 
+select * from gcbactm;
+
+select * from spriden where spriden_change_ind is null and spriden_last_name = 'Jackson' and spriden_first_name = 'Glenda';

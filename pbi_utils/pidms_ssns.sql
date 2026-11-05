@@ -10,3 +10,4 @@ where spriden_change_ind is null
 ;
 select * from spbpers;
 
+select spriden_pidm from spriden where spriden_id = '001031349' and spriden_change_ind is null;

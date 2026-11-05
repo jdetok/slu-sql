@@ -20,5 +20,11 @@ ORDER  BY table_name;
 SELECT table_name, column_name
 FROM   all_tab_columns
 -- WHERE  owner = 'BANINST1'  -- or your Banner owner, e.g. GENERAL
-  where  column_name LIKE '%ONE_UP_NO%'
+  where  column_name LIKE '%PELL%'
+  and table_name LIKE '%RC%'
 ORDER  BY table_name;
+
+select rcresar_pell_elgbl from rcresar ; 
+
+select * from sfrstcr where sfrstcr_term_code = '202718';
+select rokmisc.f_calc_stud_bill_hrs('202718', 1176506, 'N') from dual;
