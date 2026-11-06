@@ -95,3 +95,5 @@ and exists (
     ) where hrs < rorcrhr_half_time_cr_hrs
 )
 ;
+
+select count(*) from robusdf where robusdf_aidy_code = '2627' and robusdf_value_321 is not null;
