@@ -1,3 +1,10 @@
+select * from gcbactm;
+select gcraact_gcbactm_id, count(*) from gcraact group by gcraact_gcbactm_id;
+with aip as (
+    select distinct gcraact_pidm as pidm from gcraact
+    where gcraact_gcvasts_id = '2'
+    and gcraact_gcbactm_id in ('3', '4')
+)
 select 
 --    a.tbbacct_pidm as pidm,
     s.spriden_id as student_id,
@@ -31,7 +38,8 @@ select
     r.city,
     r.state_abbr,
     r.zip,
-    '' as amt_pmt_since_itemization
+    '' as amt_pmt_since_itemization,
+    case when exists (select 1 from aip where pidm = a.tbbacct_pidm) then 'Y' else 'N' end as aip_complete
 --    a.tbbacct_bill_code as to_agency
 from tbbacct a
 join spriden s on s.spriden_pidm = a.tbbacct_pidm and s.spriden_change_ind is null
