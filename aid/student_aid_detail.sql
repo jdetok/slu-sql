@@ -1,3 +1,4 @@
+-- select * from (
 with today as (
     select 
         to_number(to_char(sysdate, 'yy')) as yr, 
@@ -100,9 +101,9 @@ with today as (
     from (
         select 
             a.*, r.robinst_aidy_code as aidy, 
-            row_number() over (partition by a.sgbstdn_pidm order by a.sgbstdn_term_code_eff desc) as rn
+            row_number() over (partition by a.sgbstdn_pidm, r.robinst_aidy_code order by a.sgbstdn_term_code_eff desc) as rn
         from sgbstdn a
-        join robinst r on r.robinst_status_ind = 'A' 
+        join robinst r on r.robinst_status_ind = 'A'
         where a.sgbstdn_term_code_eff <= r.robinst_aidy_end_year + 1 || '00'
         and a.sgbstdn_pidm in (select pidm from rstat)
     ) x
@@ -127,7 +128,7 @@ with today as (
     from (
         select 
             a.*, r.robinst_aidy_code as aidy, 
-            row_number() over (partition by a.saradap_pidm order by a.saradap_term_code_entry desc) as rn
+            row_number() over (partition by a.saradap_pidm, r.robinst_aidy_code order by a.saradap_term_code_entry desc) as rn
         from saradap a
         join sarappd b on b.sarappd_pidm = a.saradap_pidm 
             and b.sarappd_term_code_entry = a.saradap_term_code_entry
@@ -170,10 +171,27 @@ select
     spriden_last_name || ', ' || spriden_first_name as name,
     a.*, sg.*, e.efc, r.*, 
     case when rokmisc.f_calc_stud_bill_hrs(period, a.pidm, 'N') is null then 'N' else 'Y' end as registered,
+    (select max(case when z.sgrsatt_atts_code like 'S%' then z.sgrsatt_atts_code end)
+        keep (dense_rank last order by z.sgrsatt_term_code_eff)
+    from sgrsatt z
+    where z.sgrsatt_pidm = a.pidm
+    and z.sgrsatt_term_code_eff <= r.period) as study_abroad,
     to_char(sysdate, 'MM/DD/YYYY HH12:MI:SS AM') as lastrun
 from rstat a
 join spriden on spriden_pidm = a.pidm and spriden_change_ind is null
-join (select * from reg union all select * from adm) sg on sg.pidm = a.pidm and sg.aidy = a.aidy
+join (
+    select * from reg 
+    union all 
+    select * from adm d
+    where not exists (
+        select 1 from reg g
+        where g.pidm = d.pidm and g.aidy = d.aidy
+    )
+
+) sg on sg.pidm = a.pidm and sg.aidy = a.aidy
 left join efc e on e.pidm = a.pidm and e.aidy = a.aidy
 left join awards r on r.pidm = a.pidm and r.aidy = a.aidy
+-- ) 
 ;
+
+select * from sgrsatt;
