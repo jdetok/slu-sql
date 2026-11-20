@@ -112,3 +112,10 @@ and exists (
     )
 )
 ;
+-- add this to the ufhpm rule
+select rcrapp1_par_child_supp, rcrapp1_child_supp
+from rcrapp1
+where rcrapp1_aidy_code = '2627'
+;
+
+select * from sfs_utility.pbdg_cutoff_dates;
