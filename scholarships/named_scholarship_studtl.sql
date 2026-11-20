@@ -1,11 +1,10 @@
 -- request from Eddie for Allaina in development 7/1/2026
 -- student detail awarded under a fund code that joins to a tbracct_a_fund_code starting with '2' or '4'
 with aidy as (
-    select to_char(sysdate - 365, 'YY') || to_char(sysdate, 'YY') as aidy
+    select to_char(add_months(sysdate, -12), 'YY') || to_char(sysdate, 'YY') as aidy
     from dual
-    where to_char(sysdate, 'MM') <= '08'
     union all
-    select to_char(sysdate, 'YY') || to_char(sysdate + 365, 'YY')
+    select to_char(sysdate, 'YY') || to_char(add_months(sysdate, 12), 'YY')
     from dual
     where to_char(sysdate, 'MM') >= '07'
 ), acct as (
